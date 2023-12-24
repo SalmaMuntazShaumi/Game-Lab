@@ -3,14 +3,57 @@
 #include <math.h>
 #include <time.h>
 
-int main(){
+void nameInput(char *name);
+void nameDisplay(void);
+
+void nameDisplay(void){
+	printf("Your name : ");
+}
+
+void nameInput(char *name){
+	scanf("%100[^\n]%*c", name);
+}
+
+void stringToCaps(char a[]){
+	int i;
+    for(i = 0; i < strlen(a); i++)
+        if(a[i] > 96 && a[i] < 123)
+            a[i] -= 32;
+}
+
+struct data{
+	char player[100];
+	int score;
+};
+
+int main(){	
+	FILE *fp;
+	struct data scoreData;
+	
+    fp = fopen("Score.txt", "w");
+
+    if(fp == NULL){
+            printf("file cannot be opened for writing\n");
+            exit(1);
+    }
+    
+	int totalPoints;
+	int playerScore = 0;
     int userHand, computerHand;
     char userHandString[10], computerHandString[10];
     
     int result;
+    
 
     int keepAsking;
     char keepPlaying = 'Y';
+    
+    char name[100];
+    
+    //Input nama
+    nameDisplay();
+    nameInput(&scoreData.player);
+    system("@cls||clear");
 
     srand(time(NULL));
 
@@ -31,15 +74,21 @@ int main(){
                 break;
         }
 
-        /*Game*/
-        printf("  ROCK PAPER SCISSORS GAME  \n");      
-        printf("============================\n");      
+        //Main Gamenya
+        
+        printf(" --- Hai %s, Welcome to the game! ---\n\n", name);
+
+        printf("================================\n");
+        printf("=   ROCK PAPER SCISSORS GAME   =\n");      
+        printf("================================\n");      
 
         do{
-            printf("\nRock, paper or scissors ?: ");
+            printf("\nRock, paper or scissors? : ");
 
             scanf("%s", userHandString);
             stringToCaps(userHandString);
+            
+        	printf("======================================\n");
 
             keepAsking = 0;
 
@@ -53,46 +102,67 @@ int main(){
                 keepAsking = 1;
         }while(keepAsking == 1);
 
-        printf("\n\nYour hand: %s", userHandString);
+        printf("\nYour hand: %s", userHandString);
         printf("\nComputer's hand: %s\n\n", computerHandString);
 
         result = userHand - computerHand;
-        if(result < 0)
-            result += 3;
+                
+        if(result < 0) result += 3;
 
         switch(result){
             case 0:
-                printf("It's a draw, gg\n\n");
+            	playerScore = playerScore + 50;
+                printf("It's a draw\n");
+                printf("Your score: 50\n");
+                printf("======================================\n\n");
                 break;
             case 1:
-                printf("YOU WON YAY!\n\n");
+            	playerScore = playerScore + 100;
+                printf("YOU WON YAY!\n");
+                printf("Your score: 100\n");
+                printf("======================================\n\n");
                 break;
             case 2:
-                printf("Oh, you lost. GG EZ NOOB\n\n");
+            	playerScore = playerScore + 0;
+                printf("Oh, you lost.\n");
+                printf("Your score: 0\n");
+                printf("======================================\n\n");
                 break;
             default:
+            	playerScore = playerScore + 0;
+                printf("Your score: 0\n");
+                printf("======================================\n\n");
                 break;
         }
-               
-        do{
-            printf("Do you want to keep playing? [Y/N]: ");
-            fflush(stdin);
-            scanf("%c",&keepPlaying);
-        }while(keepPlaying != 'y' && keepPlaying != 'Y'&& keepPlaying != 'n' && keepPlaying != 'N');
         
-        //buat clear layar
-        system("@cls||clear");
-    }
-
-    printf("  THANKS FOR PLAYING!  \n");
-    printf("=======================\n");
-
+        printf("* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\n\n");
+        
+    
+	    if(result == 0 && result == 1){
+	    	totalPoints = totalPoints + playerScore;
+	    	printf("Total Score = %d", totalPoints);
+	    	
+	    	fprintf(fp, "%s - %d", scoreData.player, totalPoints);
+    		fclose(fp);
+    	
+	       	return keepPlaying == 'y' && keepPlaying == 'Y' && keepPlaying == 'n' && keepPlaying == 'N';
+	       	system("@cls||clear");
+		} else if (result == 2){
+			totalPoints = totalPoints + playerScore;
+	   		printf("Total Score = %d", totalPoints);
+	   		
+	   		fprintf(fp, "%s - %d", scoreData.player, totalPoints);
+    		fclose(fp);
+    		
+			return keepPlaying != 'y' && keepPlaying != 'Y' && keepPlaying != 'n' && keepPlaying != 'N';
+			system("@cls||clear");
+		    printf("  THANKS FOR PLAYING!  \n");
+		    printf("=======================\n");
+		}
+		
+	}
+	
+	
+    
     return 0;
-}
-
-void stringToCaps(char a[]){
-	int i;
-    for(i = 0; i < strlen(a); i++)
-        if(a[i] > 96 && a[i] < 123)
-            a[i] -= 32;
 }
