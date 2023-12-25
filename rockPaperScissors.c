@@ -23,29 +23,23 @@ void stringToCaps(char a[]){
 }
 
 struct data{
-	char player[100];
-	int score;
+    char player[100];
+    int score;
+    int totalPoints;
 };
 
-void searchPlayer(void) {
-    FILE *fp;
-    struct data scoreData;
+void searchPlayer(struct data *scoreArray, int totalPlayers) {
     char searchName[100];
+    int i;
 
     printf("Enter the name to search: ");
     scanf("%100[^\n]%*c", searchName);
 
-    fp = fopen("Score.txt", "a+");
-
-    if (fp == NULL) {
-        printf("File cannot be opened for reading\n");
-        exit(1);
-    }
-
     int found = 0;
-    while (fscanf(fp, "%s - %d", scoreData.player, &scoreData.score) != EOF) {
-        if (strcmp(searchName, scoreData.player) == 0) {
-            printf("%s's score: %d\n", scoreData.player, scoreData.score);
+
+    for (i = 0; i < totalPlayers; i++) {
+        if (strcmp(searchName, scoreArray[i].player) == 0) {
+            printf("%s's score: %d\n", scoreArray[i].player, scoreArray[i].totalPoints);
             found = 1;
             break;
         }
@@ -54,73 +48,98 @@ void searchPlayer(void) {
     if (!found) {
         printf("%s not found in the records.\n", searchName);
     }
-
-    fclose(fp);
 }
 
-void sortScores(struct data *scoreArray, int totalPoints) {
-	int i, j;
-	for (i = 0; i < totalPoints - 1; i++) {
-        for (j = 0; j < totalPoints - i - 1; j++) {
-            if (scoreArray[j].score < scoreArray[j + 1].score) {
-                struct data temp = scoreArray[j];
-                scoreArray[j] = scoreArray[j + 1];
-                scoreArray[j + 1] = temp;
+
+void swap(int *a, int *b){
+	int buffer = *a;
+	*a = *b;
+	*b = buffer;
+}
+
+void sortScoresFromFile(struct data *scoreArray, int *totalPlayers) {
+    FILE *fp = fopen("Score.txt", "r");
+
+    if (fp == NULL) {
+        printf("File cannot be opened for reading\n");
+        exit(1);
+    }
+
+    *totalPlayers = 0;
+
+    while (fscanf(fp, "%s - %d", scoreArray[*totalPlayers].player, &scoreArray[*totalPlayers].totalPoints) != EOF) {
+        (*totalPlayers)++;
+    }
+
+    fclose(fp);
+
+    int i, j;
+    for (i = 0; i < *totalPlayers; i++) {
+        for (j = 0; j < *totalPlayers - i - 1; j++) {
+            if (scoreArray[j].totalPoints < scoreArray[j + 1].totalPoints) {
+                swap(&scoreArray[j].totalPoints, &scoreArray[j+1].totalPoints);
+                swap(&scoreArray[j].score, &scoreArray[j+1].score);
+                swap(&scoreArray[j].player, &scoreArray[j+1].player);
             }
         }
+    }
+
+    for(i = 0; i < *totalPlayers; i++){
+        printf("%s - %d\n", scoreArray[i].player, scoreArray[i].totalPoints);
     }
 }
 
 int main(){	
 	FILE *fp;
-	struct data scoreData;
+	struct data scoreData[1000];
 	
     fp = fopen("Score.txt", "a+");
 
     if(fp == NULL){
-            printf("file cannot be opened for writing\n");
-            exit(1);
+        printf("file cannot be opened for writing\n");
+        exit(1);
     }
     
     int i;
-	int totalPoints;
 	int playerScore = 0;
     int userHand, computerHand;
     char userHandString[10], computerHandString[10];
     
     int result;
     
-
     int keepAsking;
     char keepPlaying = 'Y';
+    char back;
     
-    char name[100];
-    
+    int totalPlayers = 0;
+        
     //Input nama
     nameDisplay();
-    nameInput(scoreData.player);
+    nameInput(scoreData[totalPlayers].player);
     system("@cls||clear");
 
     srand(time(NULL));
 
     while (keepPlaying == 'Y' || keepPlaying == 'y') {
-    	printf(" --- Hai %s, Welcome to the game! ---\n\n", name);  
+    	printf(" --- Hai %s, Welcome to the game! ---\n\n", scoreData[totalPlayers].player);  
         printf("================================\n");
         printf("=   ROCK PAPER SCISSORS GAME   =\n");
         printf("================================\n");
 
         int choice;
         do {
-            printf("1. Play Game\n");
-            printf("2. Scoreboard\n");
-            printf("3. Search Player Score\n");
-            printf("4. Exit\n");
-            printf("Enter your choice: ");
-            scanf("%d", &choice);
-
+			printf("MENU\n");
+		    printf("1. Play Game\n");
+		    printf("2. Scoreboard\n");
+	        printf("3. Search Player Score\n");
+	        printf("4. Exit\n");
+	   	    printf("Enter your choice: ");
+		    scanf("%d", &choice);
+			
             switch (choice) {
                 case 1:
-					while(keepPlaying == 'Y' || keepPlaying == 'y'){
+					while(keepPlaying == 'Y' || keepPlaying == 'y'){	
+						int totalPoints = 0;
 					        computerHand = rand() % 3;
 					
 					        switch(computerHand){
@@ -138,7 +157,6 @@ int main(){
 					        }
 					
 					        //Main Gamenya
-					
 					        do{
 								printf("\nLet's start the game!");
 					            printf("\nRock, paper or scissors? : ");
@@ -195,41 +213,41 @@ int main(){
 					        
 					        printf("* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\n\n");
 					        
-					    
 						    if(result == 0 && result == 1){
-						    	totalPoints = totalPoints + playerScore;
+						    	totalPoints = scoreData[totalPlayers].score;
+                            	totalPoints = totalPoints + playerScore;
+                            	scoreData[totalPlayers].totalPoints = totalPoints;
 						    	printf("Total Score = %d", totalPoints);
 						    	
-						    	fprintf(fp, "%s - %d\n", scoreData.player, totalPoints);
+						    	fprintf(fp, "%s - %d\n", scoreData[totalPlayers].player, totalPoints);
 					    		fclose(fp);
 					    	
 						       	return keepPlaying == 'y' && keepPlaying == 'Y' && keepPlaying == 'n' && keepPlaying == 'N';
-						       	system("@cls||clear");
 							} else if (result == 2){
-								totalPoints = totalPoints + playerScore;
-						   		printf("Total Score = %d", totalPoints);
-						   		
-						   		fprintf(fp, "%s - %d\n", scoreData.player, totalPoints);
-					    		fclose(fp);
-					    		
-								return keepPlaying != 'y' && keepPlaying != 'Y' && keepPlaying != 'n' && keepPlaying != 'N';
+								totalPoints = scoreData[totalPlayers].score;
+                            	totalPoints = totalPoints + playerScore;
+                            	scoreData[totalPlayers].totalPoints = totalPoints;
+						    	printf("Total Score = %d\n", totalPoints);
+						    	
 								system("@cls||clear");
-							    printf("  THANKS FOR PLAYING!  \n");
-							    printf("=======================\n");
+								printf("  THANKS FOR PLAYING!  \n");
+								printf("=======================\n");
+								
+								fprintf(fp, "%s - %d\n", scoreData[totalPlayers].player, totalPoints);
+						    	fclose(fp);
+						    	
+								return keepPlaying != 'y' && keepPlaying != 'Y' && keepPlaying != 'n' && keepPlaying != 'N';
 							}
-							
-						}                   
+						} 
                     break;
                 case 2:
-                    sortScores(&scoreData, totalPoints);
-                    printf("\nScoreboard:\n");
-                    for (i = 0; i < totalPoints; i++) {
-                        printf("%s - %d\n", scoreData.player, scoreData.score);
-                    }
-                    printf("======================================\n\n");
-                    break;
+				    printf("\nScoreboard:\n");
+				    sortScoresFromFile(scoreData, &totalPlayers);
+				    printf("======================================\n\n");
+				    break;
+
                 case 3:
-                    searchPlayer();
+                    searchPlayer(scoreData, totalPlayers);
                     break;
                 case 4:
                     printf("Thanks for playing!\n");
@@ -241,8 +259,4 @@ int main(){
             }
         } while (choice != 3);
     }
-	
-	
-    
-    return 0;
 }
