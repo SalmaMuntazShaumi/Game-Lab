@@ -7,14 +7,17 @@
 void nameInput(char *name);
 void nameDisplay(void);
 
+//module nampilin your name (tinggal panggil)
 void nameDisplay(void){
 	printf("Your name : ");
 }
 
+//module input name (tinggal panggil)
 void nameInput(char *name){
-	scanf("%100[^\n]%*c", name);
+	scanf("%100[^\n]", name);
 }
 
+//biar capslock hurufnya
 void stringToCaps(char a[]){
 	int i;
     for(i = 0; i < strlen(a); i++)
@@ -22,13 +25,15 @@ void stringToCaps(char a[]){
             a[i] -= 32;
 }
 
+//struct buat data player
 struct data{
     char player[100];
     int score;
     int totalPoints;
 };
 
-void searchPlayer(struct data *scoreArray, int totalPlayers) {
+//module utk search player
+void searchPlayer(struct data *scoreArray, int *totalPlayers) {
     char playerName[100];
     int found = 0;
     int i;
@@ -50,12 +55,7 @@ void searchPlayer(struct data *scoreArray, int totalPlayers) {
 }
 
 
-void swap(int *a, int *b){
-	int buffer = *a;
-	*a = *b;
-	*b = buffer;
-}
-
+//module utk urutkan score si player dari yang terbesar sampai yang terkecil. (Bubble)
 void sortScoresFromFile(struct data *scoreArray, int *totalPlayers) {
     FILE *fp = fopen("Score.txt", "r");
 
@@ -66,26 +66,25 @@ void sortScoresFromFile(struct data *scoreArray, int *totalPlayers) {
 
     *totalPlayers = 0;
 
-    while (fscanf(fp, "%s - %d", scoreArray[*totalPlayers].player, &scoreArray[*totalPlayers].totalPoints) != EOF) {
+    while (fscanf(fp, "%99[^-]-%d\n", scoreArray[*totalPlayers].player, &scoreArray[*totalPlayers].totalPoints) != EOF) {
         (*totalPlayers)++;
     }
 
     fclose(fp);
 
     int i, j;
-    for (i = 0; i < *totalPlayers; i++) {
+    for (i = 0; i < *totalPlayers - 1; i++) {
         for (j = 0; j < *totalPlayers - i - 1; j++) {
             if (scoreArray[j].totalPoints < scoreArray[j + 1].totalPoints) {
-                swap(&scoreArray[j].totalPoints, &scoreArray[j+1].totalPoints);
-                swap(&scoreArray[j].score, &scoreArray[j+1].score);
-                swap(&scoreArray[j].player, &scoreArray[j+1].player);
+                struct data buffer = scoreArray[j];
+                scoreArray[j] = scoreArray[j + 1];
+                scoreArray[j + 1] = buffer;
             }
         }
     }
 
     for(i = 0; i < *totalPlayers; i++){
-    	stringToCaps(scoreArray[i].player);
-        printf("%s - %d\n", scoreArray[i].player, scoreArray[i].totalPoints);
+        printf("%s-%d\n", scoreArray[i].player, scoreArray[i].totalPoints);
     }
 }
 
@@ -115,8 +114,6 @@ int main(){
     
     int totalPlayers = 0;
 
-    srand(time(NULL));
-
     while (keepPlaying == 'Y' || keepPlaying == 'y') {
         printf("================================\n");
         printf("=   ROCK PAPER SCISSORS GAME   =\n");
@@ -141,8 +138,9 @@ int main(){
     				nameInput(scoreData[totalPlayers].player);
     				
 					while(keepPlaying == 'Y' || keepPlaying == 'y'){
+						srand(time(NULL));
 						int totalPoints = 0;
-					        computerHand = rand() % 3;
+					    computerHand = rand() % 3;
 					
 					        switch(computerHand){
 					            case 0:
@@ -220,7 +218,7 @@ int main(){
                             	scoreData[totalPlayers].totalPoints = totalPoints;
 						    	printf("Total Score = %d", totalPoints);
 						    	
-						    	fprintf(fp, "%s - %d\n", scoreData[totalPlayers].player, totalPoints);
+						    	fprintf(fp, "%s-%d\n", scoreData[totalPlayers].player, totalPoints);
 					    		fclose(fp);
 					    	
 						       	return keepPlaying == 'y' && keepPlaying == 'Y' && keepPlaying == 'n' && keepPlaying == 'N';
@@ -234,7 +232,7 @@ int main(){
 								printf("  THANKS FOR PLAYING!  \n");
 								printf("=======================\n");
 								
-								fprintf(fp, "%s - %d\n", scoreData[totalPlayers].player, totalPoints);
+								fprintf(fp, "%s-%d\n", scoreData[totalPlayers].player, totalPoints);
 						    	fclose(fp);
 						    	
 								return keepPlaying != 'y' && keepPlaying != 'Y' && keepPlaying != 'n' && keepPlaying != 'N';
